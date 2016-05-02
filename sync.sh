@@ -4,4 +4,4 @@ if ! test -d $ddir
 then
 	mount /mnt/raid1 \# first
 fi
-rsync --remove-source-files -Pr mediadir/ $ddir
+rsync --remove-source-files -Pr out/ $ddir

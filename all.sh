@@ -1,6 +1,6 @@
 #!/bin/bash -e
 idir="${1:-/mnt/iphone/DCIM}"
-odir="${2:-~/media/mediadir}"
+odir="${2:-$HOME/media/out}"
 test -d "$odir" || mkdir -p "$odir"
 if test "$idir" = "/mnt/iphone/DCIM"
 then
@@ -33,7 +33,7 @@ do
 done
 find "$idir" -type f -iname '*.mov' -o -iname '*.mp4' | while read -r media
 do
-	read -r date time < <(ffprobe -v quiet -print_format json -show_format "$media" | jq -r .format.tags.creation_time ) || :
+	read -r date _ < <(ffprobe -v quiet -print_format json -show_format "$media" | jq -r .format.tags.creation_time ) || :
 	if test "$date"
 	then
 		dir=$odir/$date

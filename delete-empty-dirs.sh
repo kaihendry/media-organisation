@@ -1,2 +1,2 @@
 #!/bin/bash
-find mediadir -type d -empty -delete
+find -type d -empty -delete
