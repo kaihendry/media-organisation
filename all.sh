@@ -1,6 +1,6 @@
 #!/bin/bash -e
 idir="${1:-/mnt/iphone/DCIM}"
-odir="${2:-mediadir}"
+odir="${2:-~/media/mediadir}"
 test -d "$odir" || mkdir -p "$odir"
 if test "$idir" = "/mnt/iphone/DCIM"
 then
