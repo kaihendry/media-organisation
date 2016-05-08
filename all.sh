@@ -18,7 +18,7 @@ test -d "$idir" || exit
 
 find "$idir" -type f \( -iname "*.jpg" -o -iname "*.png" \) -not -path '*/\.*' | while read -r media
 do
-	read -r date time < <(exiv2 -g Exif.Image.DateTime -Pv "$media" ) || :
+	read -r date _ < <(exiv2 -g Exif.Image.DateTime -Pv "$media" ) || :
 	if test "$date"
 	then
 		IFS=: read -r year month day <<< "$date"
@@ -34,7 +34,7 @@ done
 find "$idir" -type f -iname '*.mov' -o -iname '*.mp4' | while read -r media
 do
 	read -r date _ < <(ffprobe -v quiet -print_format json -show_format "$media" | jq -r .format.tags.creation_time ) || :
-	if test "$date"
+	if test "$date" && test "$date" != "null"
 	then
 		dir=$odir/$date
 	else
