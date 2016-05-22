@@ -1,4 +1,33 @@
 #!/bin/bash -e
+
+show_help() {
+cat << EOF
+Usage: ${0##*/} [-hm] [SRC_DIR] [DEST_DIR]
+Arrange source directory media by YYYY-MM-DD prefix in DEST_DIR
+
+    -m          Move files
+EOF
+}
+
+move=""
+
+OPTIND=1 # Reset is necessary if getopts was used previously in the script.  It is a good idea to make this local in a function.
+while getopts "hm" opt; do
+    case "$opt" in
+        h)
+            show_help
+            exit 0
+            ;;
+        m)  move="--remove-source-files"
+            ;;
+        '?')
+            show_help >&2
+            exit 1
+            ;;
+    esac
+done
+shift "$((OPTIND-1))" # Shift off the options and optional --.
+
 idir="${1:-/mnt/iphone/DCIM}"
 odir="${2:-$HOME/media/out}"
 test -d "$odir" || mkdir -p "$odir"
@@ -28,8 +57,7 @@ do
 		echo "$media" NO EXIF... last modification date: "$dir"
 	fi
 		test -d "$dir" || mkdir -v "$dir"
-		echo rsync --remove-source-files -P "$media" "$dir/$(basename "$media")"
-		rsync --remove-source-files -P "$media" "$dir/$(basename "$media")"
+		rsync $move -P "$media" "$dir/$(basename "$media")"
 done
 find "$idir" -type f -iname '*.mov' -o -iname '*.mp4' | while read -r media
 do
@@ -42,5 +70,5 @@ do
 		echo \# "$media" NO EXIF... last modification date: "$dir"
 	fi
 		test -d "$dir" || mkdir -v "$dir"
-		rsync --remove-source-files -P "$media" "$dir/$(basename "$media")"
+		rsync $move -P "$media" "$dir/$(basename "$media")"
 done
