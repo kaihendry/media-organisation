@@ -67,8 +67,24 @@ do
 		dir=$odir/$date
 	else
 		dir=$odir/$(stat -c %y "$media" | awk '{print $1}')
-		echo \# "$media" NO EXIF... last modification date: "$dir"
+		echo \# "$media" NO METADATA... last modification date: "$dir"
 	fi
 		test -d "$dir" || mkdir -v "$dir"
 		rsync $move -P "$media" "$dir/$(basename "$media")"
 done
+
+find "$idir" -type f -iname '*.wav' | while read -r media
+do
+	read -r date _ < <(ffprobe -v quiet -print_format json -show_format "$media" | jq -r .format.tags.date ) || :
+	if test "$date" && test "$date" != "null"
+	then
+		dir=$odir/$date
+	else
+		dir=$odir/$(stat -c %y "$media" | awk '{print $1}')
+		echo \# "$media" NO METADATA... last modification date: "$dir"
+	fi
+		test -d "$dir" || mkdir -v "$dir"
+		rsync $move -P "$media" "$dir/$(basename "$media")"
+done
+
+test "$SUDO_USER" && chown -R "$SUDO_USER" out
