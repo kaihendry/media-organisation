@@ -57,7 +57,7 @@ do
 		echo "$media" NO EXIF... last modification date: "$dir"
 	fi
 		test -d "$dir" || mkdir -v "$dir"
-		rsync $move -P "$media" "$dir/$(basename "$media")"
+		rsync -trviO $move "$media" "$dir/$(basename "$media")"
 done
 find "$idir" -type f -iname '*.mov' -o -iname '*.mp4' | while read -r media
 do
@@ -70,7 +70,7 @@ do
 		echo \# "$media" NO METADATA... last modification date: "$dir"
 	fi
 		test -d "$dir" || mkdir -v "$dir"
-		rsync $move -P "$media" "$dir/$(basename "$media")"
+		rsync -trviO $move "$media" "$dir/$(basename "$media")"
 done
 
 find "$idir" -type f -iname '*.wav' | while read -r media
@@ -84,7 +84,7 @@ do
 		echo \# "$media" NO METADATA... last modification date: "$dir"
 	fi
 		test -d "$dir" || mkdir -v "$dir"
-		rsync $move -P "$media" "$dir/$(basename "$media")"
+		rsync -trviO $move "$media" "$dir/$(basename "$media")"
 done
 
 test "$SUDO_USER" && chown -R "$SUDO_USER" out
