@@ -6,3 +6,5 @@ then
 	exit
 fi
 rsync --remove-source-files -Pr "${1:-$HOME/media/out/}" $ddir
+
+./delete-empty-dirs.sh

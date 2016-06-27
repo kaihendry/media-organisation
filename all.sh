@@ -47,18 +47,12 @@ test -d "$idir" || exit
 
 find "$idir" -type f \( -iname "*.jpg" -o -iname "*.png" \) -not -path '*/\.*' | while read -r media
 do
-	read -r date _ < <(exiv2 -g Exif.Image.DateTime -Pv "$media" ) || :
-	if test "$date"
-	then
-		IFS=: read -r year month day <<< "$date"
-		dir=$odir/$year-$month-$day
-	else
-		dir=$odir/$(stat -c %y "$media" | awk '{print $1}')
-		echo "$media" NO EXIF... last modification date: "$dir"
-	fi
-		test -d "$dir" || mkdir -v "$dir"
-		rsync -trviO $move "$media" "$dir/$(basename "$media")"
+	exiv2 -T rename "$media"
+	dir=$odir/$(stat -c %y "$media" | awk '{print $1}')
+	test -d "$dir" || mkdir -v "$dir"
+	rsync -trviO $move "$media" "$dir/$(basename "$media")"
 done
+
 find "$idir" -type f -iname '*.mov' -o -iname '*.mp4' | while read -r media
 do
 	read -r date _ < <(ffprobe -v quiet -print_format json -show_format "$media" | jq -r .format.tags.creation_time ) || :
