@@ -47,7 +47,7 @@ test -d "$idir" || exit
 
 find "$idir" -type f \( -iname "*.jpg" -o -iname "*.png" \) -not -path '*/\.*' | while read -r media
 do
-	exiv2 -T rename "$media"
+	exiv2 -T rename "$media" || true
 	dir=$odir/$(stat -c %y "$media" | awk '{print $1}')
 	test -d "$dir" || mkdir -v "$dir"
 	rsync -trviO $move "$media" "$dir/$(basename "$media")"
@@ -67,7 +67,7 @@ do
 		rsync -trviO $move "$media" "$dir/$(basename "$media")"
 done
 
-find "$idir" -type f -iname '*.wav' | while read -r media
+find "$idir" -type f -iname '*.wav' -o -iname '*.mp3' | while read -r media
 do
 	read -r date _ < <(ffprobe -v quiet -print_format json -show_format "$media" | jq -r .format.tags.date ) || :
 	if test "$date" && test "$date" != "null"
