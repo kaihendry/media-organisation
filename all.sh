@@ -55,7 +55,7 @@ done
 
 find "$idir" -type f -iname '*.mov' -o -iname '*.mp4' | while read -r media
 do
-	read -r date _ < <(ffprobe -v quiet -print_format json -show_format "$media" | jq -r .format.tags.creation_time ) || :
+	read -r date _ < <(ffprobe -v quiet -print_format json -show_format "$media" | jq -r .format.tags.creation_time | cut -c1-10) || :
 	if test "$date" && test "$date" != "null"
 	then
 		dir=$odir/$date
