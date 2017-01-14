@@ -1,5 +1,12 @@
 #!/bin/bash -e
 
+timerange=/tmp/import-date-range
+for i in {1..30}; do date --rfc-3339=date --date="$i days ago"; done > /tmp/import-date-range
+
+convertsecs() {
+	printf '%d days %dh:%dm:%ds\n' $((${1} / 86400)) $((${1}/3600)) $((${1}%3600/60)) $((${1}%60))
+}
+
 show_help() {
 cat << EOF
 Usage: ${0##*/} [-hm] [SRC_DIR] [DEST_DIR]
@@ -48,7 +55,13 @@ test -d "$idir" || exit
 find "$idir" -type f \( -iname "*.jpg" -o -iname "*.png" \) -not -path '*/\.*' | while read -r media
 do
 	exiv2 -T rename "$media" || true
-	dir=$odir/$(stat -c %y "$media" | awk '{print $1}')
+	ddir=$(stat -c %y "$media" | awk '{print $1}')
+	if ! grep "$ddir" "$timerange"
+	then
+		echo SKIPPING: $media going to $ddir is too old
+		continue
+	fi
+	dir=$odir/$ddir
 	test -d "$dir" || mkdir -v "$dir"
 	rsync -trviO $move "$media" "$dir/$(basename "$media")"
 done
@@ -58,13 +71,19 @@ do
 	read -r date _ < <(ffprobe -v quiet -print_format json -show_format "$media" | jq -r .format.tags.creation_time | cut -c1-10) || :
 	if test "$date" && test "$date" != "null"
 	then
-		dir=$odir/$date
+		ddir=$date
 	else
-		dir=$odir/$(stat -c %y "$media" | awk '{print $1}')
-		echo \# "$media" NO METADATA... last modification date: "$dir"
+		ddir=$(stat -c %y "$media" | awk '{print $1}')
+		echo \# "$media" NO METADATA... last modification date: "$ddir"
 	fi
-		test -d "$dir" || mkdir -v "$dir"
-		rsync -trviO $move "$media" "$dir/$(basename "$media")"
+	if ! grep "$ddir" "$timerange"
+	then
+		echo SKIPPING: $media going to $ddir is too old
+		continue
+	fi
+	dir=$odir/$ddir
+	test -d "$dir" || mkdir -v "$dir"
+	rsync -trviO $move "$media" "$dir/$(basename "$media")"
 done
 
 find "$idir" -type f -iname '*.wav' -o -iname '*.mp3' | while read -r media
@@ -72,13 +91,19 @@ do
 	read -r date _ < <(ffprobe -v quiet -print_format json -show_format "$media" | jq -r .format.tags.date ) || :
 	if test "$date" && test "$date" != "null"
 	then
-		dir=$odir/$date
+		ddir=$date
 	else
-		dir=$odir/$(stat -c %y "$media" | awk '{print $1}')
-		echo \# "$media" NO METADATA... last modification date: "$dir"
+		ddir=$(stat -c %y "$media" | awk '{print $1}')
+		echo \# "$media" NO METADATA... last modification date: "$ddir"
 	fi
-		test -d "$dir" || mkdir -v "$dir"
-		rsync -trviO $move "$media" "$dir/$(basename "$media")"
+	dir=$odir/$ddir
+	if ! grep "$ddir" "$timerange"
+	then
+		echo SKIPPING: $media going to $ddir is too old
+		continue
+	fi
+	test -d "$dir" || mkdir -v "$dir"
+	rsync -trviO $move "$media" "$dir/$(basename "$media")"
 done
 
 test "$SUDO_USER" && chown -R "$SUDO_USER" out
