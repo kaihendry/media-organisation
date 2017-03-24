@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
 timerange=/tmp/import-date-range
-for i in {1..30}; do date --rfc-3339=date --date="$i days ago"; done > /tmp/import-date-range
+for i in {0..30}; do date --rfc-3339=date --date="$i days ago"; done > /tmp/import-date-range
 
 convertsecs() {
 	printf '%d days %dh:%dm:%ds\n' $((${1} / 86400)) $((${1}/3600)) $((${1}%3600/60)) $((${1}%60))
@@ -107,3 +107,5 @@ do
 done
 
 test "$SUDO_USER" && chown -R "$SUDO_USER" out
+
+echo $(date --rfc-3339=date) > last-synced-$(systemd-escape ${1:-iphone}).txt
