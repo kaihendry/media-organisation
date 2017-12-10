@@ -13,19 +13,23 @@ Usage: ${0##*/} [-hm] [SRC_DIR] [DEST_DIR]
 Arrange source directory media by YYYY-MM-DD prefix in DEST_DIR
 
     -m          Move files
+    -v          Skip video files
 EOF
 }
 
 move=""
+skipvideos=""
 
 OPTIND=1 # Reset is necessary if getopts was used previously in the script.  It is a good idea to make this local in a function.
-while getopts "hm" opt; do
+while getopts "hmv" opt; do
     case "$opt" in
         h)
             show_help
             exit 0
             ;;
         m)  move="--remove-source-files"
+            ;;
+        v)  skipvideos="true"
             ;;
         '?')
             show_help >&2
@@ -58,7 +62,7 @@ do
 	ddir=$(stat -c %y "$media" | awk '{print $1}')
 	if ! grep "$ddir" "$timerange"
 	then
-		echo SKIPPING: $media going to $ddir is too old
+		echo SKIPPING: "$media" going to "$ddir" is too old
 		continue
 	fi
 	dir=$odir/$ddir
@@ -66,7 +70,7 @@ do
 	rsync -trviO $move "$media" "$dir/$(basename "$media")"
 done
 
-find "$idir" -type f -iname '*.mov' -o -iname '*.mp4' | while read -r media
+test "$skipvideos" || find "$idir" -type f -iname '*.mov' -o -iname '*.mp4' | while read -r media
 do
 	read -r date _ < <(ffprobe -v quiet -print_format json -show_format "$media" | jq -r .format.tags.creation_time | cut -c1-10) || :
 	if test "$date" && test "$date" != "null"
