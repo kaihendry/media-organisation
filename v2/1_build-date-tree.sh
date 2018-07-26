@@ -13,7 +13,7 @@ moving=$(mktemp) || exit
 # we require a directory
 if ! test -d "$1"
 then
-	echo ERROR: Arg1 \"$1\" must be a directory 1>&2
+	echo ERROR: Arg1 \""$1"\" must be a directory 1>&2
 	exit 1
 fi
 
@@ -25,7 +25,7 @@ do
 		*.jpg|*.jpeg|*.mp4|*.fcpbundle)
 			dateprefix="mysrctree/$($stat -c %y "$media" | awk '{print $1}')/$(basename "$media")"
 			mkdir -p "$(dirname "$dateprefix")"
-			echo "$media" "$dateprefix" >> "$moving"
+			echo -e "$media\\t$dateprefix" >> "$moving"
 			;;
 		*)
 		echo Ignoring "$media"
@@ -41,7 +41,7 @@ read -p "Are you sure? " -n 1 -r
 echo
 if [[ $REPLY =~ ^[Yy]$ ]]
 then
-    while read -r src dest
+    while IFS=$'\t' read -r src dest
 	do
 		mv -v "$src" "$dest"
 	done < "$moving"
