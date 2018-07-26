@@ -1,5 +1,5 @@
 #!/bin/bash
-shopt -s nocaseglob
+shopt -s nocasematch
 
 kernel=$(uname -s)
 case $kernel in
@@ -8,17 +8,21 @@ case $kernel in
 	*) stat=stat
 esac
 
-moving=$(mktemp)
+moving=$(mktemp) || exit
 
 # we require a directory
-test -d "$1" || exit
+if ! test -d "$1"
+then
+	echo ERROR: Arg1 \"$1\" must be a directory 1>&2
+	exit 1
+fi
 
 dir="$1"
 
-for media in "$dir"/*
+for media in "${dir%/}"/*
 do
 	case $media in
-		*.jpg|*.mp4|*.fcpbundle)
+		*.jpg|*.jpeg|*.mp4|*.fcpbundle)
 			dateprefix="mysrctree/$($stat -c %y "$media" | awk '{print $1}')/$(basename "$media")"
 			mkdir -p "$(dirname "$dateprefix")"
 			echo "$media" "$dateprefix" >> "$moving"
