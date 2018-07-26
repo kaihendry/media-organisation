@@ -1,6 +1,13 @@
 #!/bin/bash
 shopt -s nocaseglob
 
+kernel=$(uname -s)
+case $kernel in
+	Darwin) stat=gstat
+	;;
+	*) stat=stat
+esac
+
 moving=$(mktemp)
 
 # we require a directory
@@ -8,11 +15,11 @@ test -d "$1" || exit
 
 dir="$1"
 
-find "$dir" -maxdepth 1 | while read -r media
+for media in "$dir"/*
 do
 	case $media in
 		*.jpg|*.mp4|*.fcpbundle)
-			dateprefix="mysrctree/$(stat -c %y "$media" | awk '{print $1}')/$(basename "$media")"
+			dateprefix="mysrctree/$($stat -c %y "$media" | awk '{print $1}')/$(basename "$media")"
 			mkdir -p "$(dirname "$dateprefix")"
 			echo "$media" "$dateprefix" >> "$moving"
 			;;
