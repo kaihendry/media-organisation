@@ -22,7 +22,7 @@ dir="$1"
 for media in "${dir%/}"/*
 do
 	case $media in
-		*.jpg|*.jpeg|*.mp4|*.fcpbundle)
+		*.jpg|*.jpeg|*.mov|*.mp4|*.fcpbundle)
 			dateprefix="mysrctree/$($stat -c %y "$media" | awk '{print $1}')/$(basename "$media")"
 			mkdir -p "$(dirname "$dateprefix")"
 			echo -e "$media\\t$dateprefix" >> "$moving"
