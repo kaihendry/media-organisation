@@ -10,14 +10,17 @@ esac
 
 moving=$(mktemp) || exit
 
+for i in "$@"
+do
+
 # we require a directory
-if ! test -d "$1"
+if ! test -d "$i"
 then
-	echo ERROR: Arg1 \""$1"\" must be a directory 1>&2
+	echo ERROR: Arg1 \""$i"\" must be a directory 1>&2
 	exit 1
 fi
 
-dir="$1"
+dir="$i"
 
 for media in "${dir%/}"/*
 do
@@ -30,6 +33,8 @@ do
 		*)
 		echo Ignoring "$media"
 	esac
+done
+
 done
 
 # Nothing to move, we exit
