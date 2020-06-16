@@ -17,7 +17,6 @@ Usage: ${0##*/} [-hvs] [DIR]
 Stage files for a backup
 
     -h          display this help and exit
-    -s          select files
     -v          verbose mode. Can be used multiple times for increased
                 verbosity.
 EOF
@@ -25,7 +24,6 @@ EOF
 
 # Initialize our own variables:
 verbose=0
-select=0
 
 OPTIND=1
 
@@ -36,8 +34,6 @@ while getopts hvs opt; do
             exit 0
             ;;
         v)  verbose=$((verbose+1))
-            ;;
-        s)  select=$((select+1))
             ;;
         *)
             show_help >&2
@@ -51,7 +47,6 @@ dirs=$@
 
 if ! test "$dirs"
 then
-	echo No args
 	dirs=~/Movies
 fi
 
@@ -72,10 +67,10 @@ do
 		*.jpg|*.jpeg|*.mov|*.mp4|*.fcpbundle)
 			dateprefix="mysrctree/$($stat -c %y "$media" | awk '{print $1}')/$(basename "$media")"
 			mkdir -p "$(dirname "$dateprefix")"
-			echo -e "$media\\t$dateprefix" >> "$moving"
+			echo -e "$(du -sh $media)\\t$dateprefix" >> "$moving"
 			;;
 		*)
-		echo Ignoring "$media"
+		#echo Ignoring "$media"
 	esac
 done
 
@@ -84,17 +79,18 @@ done
 # Nothing to move, we exit
 test -s "$moving" || exit
 
-if test "$select" -eq 1
-then
-	select dir in $(awk '{print $1}' $moving)
-	do
-		grep $dir $moving > $moving.bak
-		mv $moving.bak $moving
-		break
-	done
-fi
+sort -r -h -o $moving $moving
 
-cat "$moving"
+cat $moving
+
+select dir in $(awk '{print $2}' $moving)
+do
+	grep $dir $moving > $moving.bak
+	mv $moving.bak $moving
+	break
+done
+
+cat $moving
 
 read -p "Are you sure? " -n 1 -r
 echo
@@ -102,6 +98,7 @@ if [[ $REPLY =~ ^[Yy]$ ]]
 then
     while IFS=$'\t' read -r src dest
 	do
-		mv -v "$src" "$dest"
+		set -- $src # Remove the du sizing
+		mv -v $2 $dest
 	done < "$moving"
 fi
