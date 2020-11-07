@@ -1,7 +1,7 @@
-#!/bin/bash -e
+#!/bin/bash -ex
 
 timerange=/tmp/import-date-range
-for i in {0..30}; do date --rfc-3339=date --date="$i days ago"; done > /tmp/import-date-range
+for i in {0..30}; do gdate --rfc-3339=date --date="$i days ago"; done > /tmp/import-date-range
 
 convertsecs() {
 	printf '%d days %dh:%dm:%ds\n' $((${1} / 86400)) $((${1}/3600)) $((${1}%3600/60)) $((${1}%60))
